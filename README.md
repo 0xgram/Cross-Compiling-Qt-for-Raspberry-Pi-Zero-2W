@@ -227,11 +227,11 @@ Now we can download the source files for Qt. As mentioned before, this guide is 
 
 Run the following line to download the source files:
 
-	sudo wget https://qt.mirror.constant.com/archive/qt/5.15/5.15.17/single/qt-everywhere-opensource-src-5.15.17.tar.xz
+	wget https://qt.mirror.constant.com/archive/qt/5.15/5.15.17/single/qt-everywhere-opensource-src-5.15.17.tar.xz
 	
 Extract the downloaded tar file with the following command:
 
-	sudo tar xfv qt-everywhere-opensource-src-5.15.17.tar.xz
+	tar xfv qt-everywhere-opensource-src-5.15.17.tar.xz
 	
 We need to slightly modify the a mkspec file within the source files to allow us to use our cross compiler. We will copy an existing directory within the source files, and modify the name of the directory and the 
 contents of the qmake.conf file within that directory to follow the name of our compiler.  
@@ -252,7 +252,7 @@ We will download this into the tools folder. Let's first change into that direct
 	
 Run the following to download the compiler:
 
-	sudo wget https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
+	wget https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
 	
 Once it is downloaded, we can extract it using the following command:
 
