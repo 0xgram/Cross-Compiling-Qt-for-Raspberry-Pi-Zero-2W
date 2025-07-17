@@ -1,17 +1,17 @@
-# Cross-Compiling Qt 5.15.0 for Raspberry Pi 4
+# Cross-Compiling Qt 5.15.17 for Raspberry Pi Zero 2W
 
 I have often faced issues compiling Qt for Raspberry Pis in the past. With every update to the software and hardware, the instructions that were written for an older version seem to become slightly broken with the new version. 
 When compiling the source directly on the Pi, it can take a long time to realise an issue even occured, due to the slower CPU.
 
-After a failed attempt trying to compile natively on the new Raspberry Pi 4, I decided to focus on getting a cross compiler to work. 
+After a failed attempt trying to compile natively on the new Raspberry Pi Zero 2W, I decided to focus on getting a cross compiler to work. 
 It would mean that I can do all the CPU intensive work directly on my PC and I can also fail faster, speeding up my ability to find and troubleshoot issues.
 
-This guide documents the steps I followed to corss-compile Qt 5.15.0 for the Raspberry Pi 4B. Hope it might be useful to anyone else wanting to achieve something similar. If you spot any errors or redundant/unnecessary steps, please do let me know.
+This guide documents the steps I followed to corss-compile Qt 5.15.17 for the Raspberry Pi Zero 2W. Hope it might be useful to anyone else wanting to achieve something similar. If you spot any errors or redundant/unnecessary steps, please do let me know.
 
 ## Set up as tested:
 **Hardware**  
 Host: Ryzen 5 3600 + 16 GB RAM + RTX 2070 Super  
-Target: Raspberry Pi 4 Model B Rev 1.2 (2020 production year)
+Target: Raspberry Pi Zero 2W
 
 **Software**  
 Host: Ubuntu 20.04 LTS 64-bit (Running in VMWare Player within Windows 10)  
@@ -207,7 +207,8 @@ For simplicity, I opted not to use a passphrase when generating the key.
 I chose to create a directory called "rpi" to use as my workspace for the cross-compiler on the PC. Use these commands to create the directory structure:
 
 	sudo mkdir ~/rpi
-	sudo mkdir ~/rpi/build
+	sudo mkdir ~/rpi/build-rpi
+ 	sudo mkdir ~/rpi/build-ubuntu
 	sudo mkdir ~/rpi/tools
 	sudo mkdir ~/rpi/sysroot
 	sudo mkdir ~/rpi/sysroot/usr
@@ -222,24 +223,24 @@ The last command should have changed your current directory to ~/rpi. If not, ru
 ## Step 4: Build Preparation & Build
 
 ### 4.1 Download Qt sources
-Now we can download the source files for Qt. As mentioned before, this guide is for Qt 5.15.0, which is the latest version available at the time of running. It is also the latest LTS version.
+Now we can download the source files for Qt. As mentioned before, this guide is for Qt 5.15.17, which is the latest version available at the time of running. It is also the latest LTS version.
 
 Run the following line to download the source files:
 
-	sudo wget http://download.qt.io/archive/qt/5.15/5.15.0/single/qt-everywhere-src-5.15.0.tar.xz
+	sudo wget https://qt.mirror.constant.com/archive/qt/5.15/5.15.17/single/qt-everywhere-opensource-src-5.15.17.tar.xz
 	
 Extract the downloaded tar file with the following command:
 
-	sudo tar xfv qt-everywhere-src-5.15.0.tar.xz 
+	sudo tar xfv qt-everywhere-opensource-src-5.15.17.tar.xz
 	
 We need to slightly modify the a mkspec file within the source files to allow us to use our cross compiler. We will copy an existing directory within the source files, and modify the name of the directory and the 
 contents of the qmake.conf file within that directory to follow the name of our compiler.  
 
 To do this, run the following two command:
 
-	cp -R qt-everywhere-src-5.15.0/qtbase/mkspecs/linux-arm-gnueabi-g++ qt-everywhere-src-5.15.0/qtbase/mkspecs/linux-arm-gnueabihf-g++
+	cp -R qt-everywhere-src-5.15.17/qtbase/mkspecs/linux-arm-gnueabi-g++ qt-everywhere-src-5.15.17/qtbase/mkspecs/linux-arm-gnueabihf-g++
 	
-	sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' qt-everywhere-src-5.15.0/qtbase/mkspecs/linux-arm-gnueabihf-g++/qmake.conf
+	sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' qt-everywhere-src-5.15.17/qtbase/mkspecs/linux-arm-gnueabihf-g++/qmake.conf
 
 ### 4.2 Download the cross-compiler
 
@@ -311,37 +312,43 @@ In the Raspberry Pi configuration steps (step 2.7), I mentioned a list of librar
 10. If after installing any of the above libraries you face issues with the configure step below, then that means that library installation was interfering with something in your sysroot.  
 That would be a library specific issues most likely, and resolving that is out of the scope of this guide.
 
-### 4.6 Configure Qt Build
+### 4.6 Configure Qt Build for RPI
 Now most of the work we need to set things up has been completed. We can now configure our Qt build.
 
 Let's move into the build directory that we created earlier inside the rpi folder:
 
-	cd ~/rpi/build
+	cd ~/rpi/build-rpi
 	
 Now we need to run the configure script to configure our build. This configure script is actually located inside the qt sources directory. We don't want to build within that source directory as it can get messy, so we will access it from
 within this build directory. This is the command you need to run to configure the build, including all the necessary options:
 
-	../qt-everywhere-src-5.15.0/configure -release -opengl es2  -eglfs -device linux-rasp-pi4-v3d-g++ -device-option CROSS_COMPILE=~/rpi/tools/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf- -sysroot ~/rpi/sysroot -prefix /usr/local/qt5.15 -extprefix ~/rpi/qt5.15 -opensource -confirm-license -skip qtscript -skip qtwayland -skip qtwebengine -nomake tests -make libs -pkg-config -no-use-gold-linker -v -recheck
+	../qt-everywhere-src-5.15.17/configure -release -opengl es2 -eglfs -device linux-rasp-pi2-g++ -device-option CROSS_COMPILE=~/rpi/tools/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf- -sysroot ~/rpi/sysroot -prefix /usr/local/qt5.15 -extprefix ~/rpi/qt5.15-rpi -opensource -confirm-license -skip qtscript -skip qtwayland -skip qtwebengine -nomake tests -nomake examples -make libs -pkg-config -no-use-gold-linker -v -recheck
 	
 The configure script may take a few minutes to complete. Once it is completed you should get a summary of what has been configured. Make sure the following options appear:
 
 <pre><code>
 QPA backends:
   DirectFB ............................... no
-  <b>EGLFS .................................. yes	[SHOULD BE YES]</b>
+  <b></b>EGLFS .................................. yes	[SHOULD BE YES]</b>
   EGLFS details:
     EGLFS OpenWFD ........................ no
     EGLFS i.Mx6 .......................... no
     EGLFS i.Mx6 Wayland .................. no
     EGLFS RCAR ........................... no
-    <b>EGLFS EGLDevice ...................... yes	[SHOULD BE YES]</b>
-    EGLFS GBM ............................ yes
+    EGLFS EGLDevice ...................... no
+    EGLFS GBM ............................ no
     EGLFS VSP2 ........................... no
     EGLFS Mali ........................... no
-    <b>EGLFS Raspberry Pi ................... no	[SHOULD BE NO]</b>
-    EGLFS X11 ............................ yes
+    <b></b>EGLFS Raspberry Pi ................... yes	[SHOULD BE YES]</b>
+    EGLFS X11 ............................ no
   LinuxFB ................................ yes
   VNC .................................... yes
+  XCB:
+    Using system-provided xcb-xinput ..... no
+    Native painting (experimental) ....... no
+    GL integrations:
+      GLX Plugin ......................... no
+      EGL-X11 Plugin ..................... no
 </code></pre>  
 
 If the your configuration summary doesn't have the EGLFS features set to what's shown above, something has probably gone wrong. You can look at the config.log file in the build directory to try and diagnose what the issue might be.
@@ -360,10 +367,72 @@ As you install the libraries, you should be able to see different features becom
 
 If all looks good and all libraries you need have been installed we can continue to the next section
 
-### 4.7 Build Qt
+### 4.7 Configure Qt Build for Ubuntu Desktop
+Now most of the work we need to set things up has been completed. We can now configure our Qt build.
+
+Install `xcb` libraries for Ubuntu Desktop:
+```bash
+ sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+```
+
+Let's move into the build directory that we created earlier inside the rpi folder:
+
+	cd ~/rpi/build-ubuntu
+	
+Now we need to run the configure script to configure our build. This configure script is actually located inside the qt sources directory. We don't want to build within that source directory as it can get messy, so we will access it from
+within this build directory. This is the command you need to run to configure the build, including all the necessary options:
+
+	../qt-everywhere-src-5.15.17/configure -release -prefix /usr/local/qt5.15 -opensource -confirm-license -skip qtscript -skip qtwayland -skip qtwebengine -nomake tests -make libs -make examples -pkg-config -no-use-gold-linker -v -recheck
+	
+The configure script may take a few minutes to complete. Once it is completed you should get a summary of what has been configured. Make sure the following options appear:
+
+<pre><code>
+QPA backends:
+  DirectFB ............................... no
+  <b></b>EGLFS .................................. yes	[SHOULD BE YES]</b>
+  EGLFS details:
+    EGLFS OpenWFD ........................ no
+    EGLFS i.Mx6 .......................... no
+    EGLFS i.Mx6 Wayland .................. no
+    EGLFS RCAR ........................... no
+    EGLFS EGLDevice ...................... no
+    EGLFS GBM ............................ no
+    EGLFS VSP2 ........................... no
+    EGLFS Mali ........................... no
+    <b></b>EGLFS Raspberry Pi ................... no	[SHOULD BE NO]</b>
+    <b></b>EGLFS X11 ............................ yes	[SHOULD BE YES]</b>
+  LinuxFB ................................ yes
+  VNC .................................... yes
+  XCB:
+    <b></b>Using system-provided xcb-xinput ..... yes	[SHOULD BE YES]</b>
+    Native painting (experimental) ....... no
+    GL integrations:
+      <b></b>GLX Plugin ......................... yes	[SHOULD BE YES]</b>
+        <b></b>XCB GLX .......................... yes	[SHOULD BE YES]</b>
+      <b></b>EGL-X11 Plugin ..................... yes	[SHOULD BE YES]</b>
+</code></pre>  
+
+If the your configuration summary doesn't have the EGLFS features set to what's shown above, something has probably gone wrong. You can look at the config.log file in the build directory to try and diagnose what the issue might be.
+If you see an error at the bottom of your config summary along the lines of "EGLFS was enabled but...." that could also be an indication something went wrong. Look through the config.log files to try and diagnose the error.  
+You may get a warning about QDoc not being compiled. This can be safely ignored unless you specifically need this.
+
+If you have any issues, before running configure again, delete the current contents with the following command (save a copy of config.log first if you need to):
+
+	rm -rf *
+
+The configuration command I provided above skips QtWebEngine as this seems to have some additional dependacies. If you need it, you can try compiling that module seperately later. I've also skipped Wayland support, but if you need it, you can remove that option from the configure command provided.
+I've skipped QtScripts as this library is being depracated and it is probably best to avoid using it.
+
+If you are building QtMultimedia and following my steps in the previous section, this is the point where you go back and install the next library you need on the RPi. That is assuming that the configure summary looked okay and doesn't indicate any issues.  
+As you install the libraries, you should be able to see different features become enabled (set to "yes") on the configure summary under Multimedia and Bluetooth.
+
+If all looks good and all libraries you need have been installed we can continue to the next section
+
+
+### 4.8 Build Qt
 Our build has been configured now, and it is time to actually build the source files. Ensure you are still in the build directory, and run the following command:
 
-	make -j4
+	make -j$(nproc)
 	
 The -j4 option indicates that the job should be spread into 4 threads and run in parallel. I allocated 4 CPU cores to my Ubuntu virtual machine, so I would think the system will make use of that and distribute the workload among the 4 cores.
 
@@ -375,7 +444,7 @@ Once it is completed, we can install the built package using the following comma
 	
 This should install the files in the correct directories
 
-### 4.8 Deploy Qt to our Raspberry Pi
+### 4.9 Deploy Qt to our Raspberry Pi
 We can now deploy Qt to our RPi. We will again make use of the rsync command. First move back into the rpi folder using the following command:
 
 	cd ~/rpi
@@ -400,7 +469,7 @@ The Qt wiki for installing on a Raspberry Pi 2 suggests the following:
 
 Something to try if you're having issues running your projects.
 
-That should be it! You have now (hopefully) succesfully installed Qt 5.15 on the Raspberry Pi 4B.
+That should be it! You have now (hopefully) succesfully installed Qt 5.15 on the Raspberry Pi Zero 2W.
 
 In the next step, we will build an example application, just to check everything works.
 
