@@ -193,14 +193,14 @@ For simplicity, I opted not to use a passphrase when generating the key.
 ### 3.3 Set up the directory structure
 I chose to create a directory called "rpi" to use as my workspace for the cross-compiler on the PC. Use these commands to create the directory structure:
 
-	sudo mkdir ~/rpi
-	sudo mkdir ~/rpi/build-rpi
- 	sudo mkdir ~/rpi/build-ubuntu
-	sudo mkdir ~/rpi/tools
-	sudo mkdir ~/rpi/sysroot
-	sudo mkdir ~/rpi/sysroot/usr
-	sudo mkdir ~/rpi/sysroot/opt
-	sudo chown -R 1000:1000 ~/rpi
+	mkdir ~/rpi
+	mkdir ~/rpi/build-rpi
+ 	mkdir ~/rpi/build-ubuntu
+	mkdir ~/rpi/tools
+	mkdir ~/rpi/sysroot
+	mkdir ~/rpi/sysroot/usr
+	mkdir ~/rpi/sysroot/opt
+	chown -R 1000:1000 ~/rpi
 	cd ~/rpi
 	
 The second to last line makes the first user of the computer (hopefully you) the owner of that folder. You can replace the `1000` with your user name if you want to be sure.
