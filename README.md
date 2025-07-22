@@ -14,12 +14,12 @@ Host: Ryzen 5 3600 + 16 GB RAM + RTX 2070 Super
 Target: Raspberry Pi Zero 2W
 
 **Software**  
-Host: Ubuntu 20.04 LTS 64-bit (Running in VMWare Player within Windows 10)  
-Target: Raspberry Pi OS (32-bit) Release: 2020-05-27  
+Host: Ubuntu 20.04 LTS 64-bit (Running in VMWare Player within Windows 11)  
+Target: Raspberry Pi OS (32-bit) Release: 2020-05-27
 Cross Compiler: gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf  
 
 **Other Notes**  
-Virtual Machine: VMWare Player configured with 4 CPU Cores + 8GB RAM + Virtualisation Engine for CPU disabled  
+Virtual Machine: VMWare Player configured with 8 CPU Cores + 8GB RAM + Virtualisation Engine for CPU disabled  
 WSL: These instructions have been tested on Windows Subsystem for Linux (WSL) and have worked perfectly (Ubuntu 20.04). This can be faster than dealing with a VM  
 Storage Requirements: The build directory within Ubuntu was around 8.1 GB once the whole process was complete  
 Networking: Your Raspberry Pi REQUIRES internet access to follow these instructions. It will also need to be on the same network as the host PC
@@ -96,16 +96,7 @@ To enable SSH, go to:
 	
 Press Enter/Return to enable it
 
-### 2.2 Enable GL (FAKE KMS)
-To enable Fake KMS, from the root `raspi-config` menu, go to:
-
-	Advanced Options -> A8 GL Driver -> G2 GL (Fake KMS)
-	
-That should enable KMS. If you are using a minimal build, you may be prompted to download some updates before this option becomes available. If asked, do so.
-
-That is all we need to configure in `raspi-config`
-
-### 2.3 Enable Development Sources
+### 2.2 Enable Development Sources
 You need to edit your sources list to enable development sources. To do this, enter the following into a terminal
 
 	sudo nano /etc/apt/sources.list
@@ -116,7 +107,7 @@ In the nano text editor, uncomment the following line by removing the `#` charac
 	
 Now press `Ctrl+X` to quit. You will be asked if you want to save the changes. Press `y` for yes, and then press `Enter` to keep the same filename.
 
-### 2.4 Update the system
+### 2.3 Update the system
 
 Run the following commands in terminal to update the system and reboot
 
@@ -124,7 +115,7 @@ Run the following commands in terminal to update the system and reboot
 	sudo apt-get dist-upgrade
 	sudo reboot
 
-### 2.5 Enable rsync with elevated rights
+### 2.4 Enable rsync with elevated rights
 Later in this guide, we will be using the `rsync` command to sync files between the PC and the RPi. For some of these files, root rights (i.e. sudo) are required.  
 In this step, we will change a setting to allow this.
 
@@ -150,19 +141,15 @@ In my case (and for most others else as well), it was:
 
 That's it. Now rsync should be setup to run with sudo if needed.
 
-### 2.6 Install the required development packages
+### 2.5 Install the required development packages
 
 Run the following commands in terminal to install the required packages
 
-	sudo apt-get build-dep qt5-qmake
-	sudo apt-get build-dep libqt5gui5
-	sudo apt-get build-dep libqt5webengine-data
-	sudo apt-get build-dep libqt5webkit5
-	sudo apt-get install libudev-dev libinput-dev libts-dev libxcb-xinerama0-dev libxcb-xinerama0 gdbserver
+	sudo apt-get install libts-dev
 	
 At this stage I made a backup of my SD card image using `Win32DiskImager` so that I can easily revert to this state if something later on broke the installation.
 	
-### 2.7 Optional packages for multimedia (can be done later as well)
+### 2.6 Optional packages for multimedia (can be done later as well)
 
 You can install these packages if you want multimedia or bluetooth capability.  
 
@@ -177,7 +164,7 @@ It should be noted that I initially had issues configuring my build of Qt with t
 	
 In my installation, I skipped this step and did it at a later stage. The exact steps I happened to follow which worked for me are documented below.
 
-### 2.8 Create a directory for the Qt install
+### 2.7 Create a directory for the Qt install
 This is where the built Qt sources will be deployed to on the Rasberry Pi. Run the following to create the directory:
 
 	sudo mkdir /usr/local/qt5.15
